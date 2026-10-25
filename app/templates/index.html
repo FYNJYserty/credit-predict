@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Оценка кредитного риска</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main>
+    <header>
+        <p class="eyebrow">Учебный ML-проект · Give Me Some Credit</p>
+        <h1>Оценка кредитного риска</h1>
+        <p>Заполните анкету, чтобы оценить риск просрочки на 90 дней и более в течение двух лет.</p>
+    </header>
+    {% if error %}
+    <div class="message error" role="alert">{{ error }}</div>
+    {% endif %}
+    {% if result %}
+    <section class="message result" aria-live="polite">
+        <p class="eyebrow">Оценка вероятности серьёзной просрочки</p>
+        <p class="score">{{ '%.1f'|format(result.probability * 100) }}%</p>
+        <h2>{{ 'Повышенный риск' if result.high_risk else 'Риск ниже выбранного порога' }}</h2>
+        <p>Порог модели: {{ '%.0f'|format(result.threshold * 100) }}%.
+            {{ 'Рекомендуется дополнительная проверка анкеты.' if result.high_risk else 'Серьёзная просрочка менее вероятна по оценке модели.' }}</p>
+        <p>Это учебная оценка. Она не гарантирует возврат кредита и не заменяет решение специалиста.</p>
+    </section>
+    {% endif %}
+    <form method="post">
+        <h2>Анкета клиента</h2>
+        <p class="hint">Дробные значения вводите через точку, например 0.5. Количества могут быть 0, 1, 2 и больше — это не переключатели «да/нет». Доход и число иждивенцев можно оставить пустыми.</p>
+        <div class="fields">
+        {% for field in fields %}
+            {% set name = field.name %}
+            <div class="field">
+                <label for="{{ name }}">{{ field.label }}</label>
+                <input type="number" id="{{ name }}" name="{{ name }}"
+                       value="{{ values.get(name, '') }}" min="{{ field.minimum }}"
+                       max="{{ 120 if name == 'age' else 1000000000000 }}"
+                       step="{{ 1 if field.integer else 'any' }}"
+                       aria-describedby="{{ name }}-hint"
+                       {% if name not in optional %}required{% endif %}>
+                <p class="hint field-hint" id="{{ name }}-hint">{{ hints[name] }}</p>
+            </div>
+        {% endfor %}
+        </div>
+        <button type="submit">Оценить риск</button>
+    </form>
+    <footer>Филиппов Антон Валентинович · М4105 · Flask + scikit-learn</footer>
+</main>
+</body>
+</html>
